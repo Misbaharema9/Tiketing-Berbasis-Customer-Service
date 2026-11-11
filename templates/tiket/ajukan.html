@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% from '_macros.html' import badge_prioritas %}
+
+{% block title %}Ajukan Tiket — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item active">Pengajuan Tiket Bantuan</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card-modern p-4 p-md-5 bg-white mb-4">
+
+            <!-- Card Header -->
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                <div class="rounded-4 p-3 bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-send-plus-fill fs-3"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-1 text-dark">Form Pengajuan Tiket Kendala Kampus</h4>
+                    <p class="text-muted small mb-0">Sampaikan laporan kendala fasilitas, SIMAKA, akademik, atau layanan kampus Institut Asia</p>
+                </div>
+            </div>
+
+            <!-- Form -->
+            <form method="POST" action="{{ url_for('tiket_ajukan') }}" novalidate>
+
+                <!-- Judul -->
+                <div class="mb-4">
+                    <label for="judul" class="form-label fw-semibold small text-secondary">
+                        Topik Permasalahan / Judul Tiket <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="judul" name="judul"
+                           class="form-control form-control-lg bg-light border-light-subtle rounded-3 {{ 'is-invalid' if errors.judul else '' }}"
+                           value="{{ data.judul }}"
+                           placeholder="Contoh: Akun SIMAKA terkunci / AC Lab 3 tidak dingin"
+                           maxlength="150" required autofocus>
+                    {% if errors.judul %}
+                    <div class="invalid-feedback fw-medium">
+                        <i class="bi bi-exclamation-circle me-1"></i>{{ errors.judul }}
+                    </div>
+                    {% else %}
+                    <div class="form-text small">Tuliskan ringkasan kendala dengan jelas dan padat.</div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <!-- Kategori -->
+                    <div class="col-md-7">
+                        <label for="kategori_id" class="form-label fw-semibold small text-secondary">
+                            Kategori Layanan Kampus <span class="text-danger">*</span>
+                        </label>
+                        <select id="kategori_id" name="kategori_id"
+                                class="form-select form-select-lg bg-light border-light-subtle rounded-3 {{ 'is-invalid' if errors.kategori_id else '' }}"
+                                required>
+                            <option value="">— Pilih Kategori Layanan —</option>
+                            {% for k in kategoris %}
+                            <option value="{{ k.kategori_id }}"
+                                    {{ 'selected' if data.kategori_id|string == k.kategori_id|string else '' }}
+                                    {{ 'disabled' if k.terpakai >= k.kuota else '' }}>
+                                {{ k.nama }} ({{ k.kode }})
+                                {% if k.terpakai >= k.kuota %} &bull; [KUOTA PENUH]{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.kategori_id %}
+                        <div class="invalid-feedback fw-medium">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ errors.kategori_id }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Prioritas -->
+                    <div class="col-md-5">
+                        <label for="prioritas" class="form-label fw-semibold small text-secondary">
+                            Tingkat Urgensi / Prioritas <span class="text-danger">*</span>
+                        </label>
+                        <select id="prioritas" name="prioritas"
+                                class="form-select form-select-lg bg-light border-light-subtle rounded-3 {{ 'is-invalid' if errors.prioritas else '' }}"
+                                required>
+                            {% for p in ['Rendah', 'Sedang', 'Tinggi'] %}
+                            <option value="{{ p }}" {{ 'selected' if data.prioritas == p else '' }}>
+                                Prioritas {{ p }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if errors.prioritas %}
+                        <div class="invalid-feedback fw-medium">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ errors.prioritas }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Deskripsi Detail -->
+                <div class="mb-4">
+                    <label for="deskripsi" class="form-label fw-semibold small text-secondary">
+                        Detail Lengkap Permasalahan <span class="text-danger">*</span>
+                    </label>
+                    <textarea id="deskripsi" name="deskripsi" rows="5"
+                              class="form-control bg-light border-light-subtle rounded-3 {{ 'is-invalid' if errors.deskripsi else '' }}"
+                              placeholder="Jelaskan kronologi kendala, lokasi ruangan/lab, kode mata kuliah, atau nomor transaksi jika terkait pembayaran..."
+                              required>{{ data.deskripsi }}</textarea>
+                    {% if errors.deskripsi %}
+                    <div class="invalid-feedback fw-medium">
+                        <i class="bi bi-exclamation-circle me-1"></i>{{ errors.deskripsi }}
+                    </div>
+                    {% else %}
+                    <div class="form-text small">Semakin rinci informasi yang Anda berikan, semakin cepat tim helpdesk menyelesaikannya.</div>
+                    {% endif %}
+                </div>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-end align-items-center gap-3">
+                    <a href="{{ url_for('dashboard_customer') }}" class="btn btn-light rounded-pill px-4 text-secondary">
+                        Batal
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-send-fill me-2"></i> Kirim Tiket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar Tips Informasi -->
+    <div class="col-12 col-lg-4">
+        <div class="card-modern p-4 bg-white mb-4">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-shield-check text-primary me-2"></i>Panduan Pengajuan
+            </h6>
+            <div class="d-flex flex-column gap-3 small text-secondary">
+                <div class="d-flex gap-2">
+                    <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                    <span>Setiap tiket akan mendapatkan nomor registrasi unik <code>TKT-...</code> yang dapat dilacak statusnya.</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                    <span>Petugas CS helpdesk kampus akan langsung merespon melalui fitur percakapan tiket.</span>
+                </div>
+                <div class="d-flex gap-2">
+                    <i class="bi bi-check-circle-fill text-success flex-shrink-0 mt-1"></i>
+                    <span>Setelah tiket dinyatakan selesai, Anda dapat memberikan rating kepuasan layanan.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-modern p-4 text-white" style="background: linear-gradient(135deg, #0F172A, #1E293B);">
+            <div class="d-flex align-items-center gap-2 mb-2 text-warning">
+                <i class="bi bi-telephone-fill"></i>
+                <span class="fw-bold small">Kontak Darurat Kampus</span>
+            </div>
+            <p class="small text-white-50 mb-3">
+                Untuk insiden darurat keselamatan di area kampus Institut Asia:
+            </p>
+            <div class="fw-bold fs-6 mb-1 text-white"><i class="bi bi-building me-1"></i> Keamanan Kampus Gd. Rektorat</div>
+            <div class="small text-white-50">Ext: 110 &bull; WhatsApp: 0812-ASIA-911</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

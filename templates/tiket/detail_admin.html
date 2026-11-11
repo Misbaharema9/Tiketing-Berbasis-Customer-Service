@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% from '_macros.html' import badge_status, badge_prioritas %}
+
+{% block title %}Supervisi Tiket {{ tiket.nomor_unik }} — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin_tiket') }}" class="text-decoration-none">Semua Tiket</a></li>
+        <li class="breadcrumb-item active">Supervisi {{ tiket.nomor_unik }}</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 fw-bold small">
+                <i class="bi bi-shield-check me-1"></i> Mode Pengawasan Admin
+            </span>
+            <code class="fw-bold text-primary fs-6">{{ tiket.nomor_unik }}</code>
+        </div>
+        <h4 class="fw-bold text-dark mb-0">{{ tiket.judul }}</h4>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        {{ badge_status(tiket.status) }}
+        {{ badge_prioritas(tiket.prioritas) }}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- ================= KOLOM KIRI: DETAIL LAPORAN & CHAT PERCAKAPAN ================= -->
+    <div class="col-12 col-lg-8">
+
+        <!-- Info Pihak Terkait (Mahasiswa & Petugas CS) -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card-modern p-3 bg-white h-100 border-start border-4 border-primary">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center p-3 fs-5">
+                            <i class="bi bi-mortarboard-fill"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Pelapor (Mahasiswa):</small>
+                            <strong class="text-dark d-block">{{ tiket.nama_customer }}</strong>
+                            <small class="text-secondary">NIM: <code>{{ tiket.nim_customer }}</code> &bull; {{ tiket.email_customer }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-modern p-3 bg-white h-100 border-start border-4 border-success">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle bg-success bg-opacity-10 text-success d-flex align-items-center justify-content-center p-3 fs-5">
+                            <i class="bi bi-headset"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted d-block">Petugas CS Penangan:</small>
+                            {% if tiket.nama_karyawan %}
+                                <strong class="text-success d-block">{{ tiket.nama_karyawan }}</strong>
+                                <small class="text-secondary">NIP/ID: <code>{{ tiket.nip_karyawan }}</code></small>
+                            {% else %}
+                                <strong class="text-danger d-block">Belum Ditugaskan (Unassigned)</strong>
+                                <small class="text-muted">Gunakan panel kanan untuk menugaskan CS</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deskripsi Awal Masalah -->
+        <div class="card-modern p-4 mb-4 bg-white">
+            <h6 class="fw-bold text-dark mb-2">
+                <i class="bi bi-file-text-fill text-primary me-2"></i>Rincian Pengaduan Awal Mahasiswa
+            </h6>
+            <div class="p-3 bg-light rounded-3 border">
+                <p class="mb-0 text-dark" style="white-space: pre-line;">{{ tiket.deskripsi }}</p>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3 small text-muted">
+                <span>Kategori: <strong>{{ tiket.nama_kategori }}</strong></span>
+                <span>Waktu Dibuat: {{ tiket.dibuat_pada[:16] }}</span>
+            </div>
+        </div>
+
+        <!-- Percakapan / Live Chat Monitor -->
+        <div class="card-modern p-0 bg-white overflow-hidden mb-4 shadow-sm">
+            <div class="p-3 px-4 bg-light border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-left-text-fill text-primary"></i>
+                    Pemantauan Percakapan CS &amp; Mahasiswa
+                    <span class="badge rounded-pill bg-primary ms-1">{{ pesans | length }} Pesan</span>
+                </h6>
+                <span class="badge rounded-pill bg-white text-secondary border small">
+                    <i class="bi bi-eye-fill text-primary me-1"></i> Admin View (Live Stream)
+                </span>
+            </div>
+
+            <!-- Chat Bubble List -->
+            <div class="p-4" style="max-height: 480px; overflow-y: auto; background: #F8FAFC;">
+                {% if pesans %}
+                    {% for p in pesans %}
+                        {% set is_admin = p.role_pengirim == 'admin' %}
+                        {% set is_cs = p.role_pengirim == 'karyawan' %}
+                        {% set is_mhs = p.role_pengirim == 'customer' %}
+
+                        <div class="d-flex mb-3 {% if is_admin %}justify-content-center{% elif is_cs %}flex-row-reverse{% endif %}">
+                            
+                            {% if is_admin %}
+                                <!-- Pesan Supervisi Admin di Tengah -->
+                                <div class="p-3 rounded-4 bg-warning bg-opacity-10 border border-warning text-dark text-center shadow-xs" style="max-width: 85%;">
+                                    <div class="d-flex align-items-center justify-content-center gap-2 mb-1">
+                                        <i class="bi bi-shield-fill-exclamation text-warning-emphasis"></i>
+                                        <strong class="small text-warning-emphasis">{{ p.nama_pengirim }} (Admin)</strong>
+                                        <span class="badge bg-warning text-dark" style="font-size: 10px;">Catatan Supervisi</span>
+                                    </div>
+                                    <p class="mb-1 small fw-medium" style="white-space: pre-line;">{{ p.isi }}</p>
+                                    <div class="text-muted" style="font-size: 10px;">{{ p.dikirim_pada[:16] }}</div>
+                                </div>
+                            {% else %}
+                                <!-- Chat Mahasiswa (Kiri) vs CS (Kanan) -->
+                                <div class="p-3 rounded-4 shadow-xs"
+                                     style="max-width: 80%; {% if is_cs %}background: #2563EB; color: #FFFFFF; border-bottom-right-radius: 4px;{% else %}background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; border-bottom-left-radius: 4px;{% endif %}">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <strong class="small {% if is_cs %}text-white{% else %}text-primary{% endif %}">
+                                            {{ p.nama_pengirim }}
+                                        </strong>
+                                        <span class="badge rounded-pill {% if is_cs %}bg-white text-primary{% else %}bg-primary-subtle text-primary{% endif %}" style="font-size: 10px;">
+                                            {{ 'Helpdesk CS' if is_cs else 'Mahasiswa' }}
+                                        </span>
+                                    </div>
+                                    <p class="mb-1 small" style="white-space: pre-line;">{{ p.isi }}</p>
+                                    <div class="text-end" style="font-size: 10px; opacity: 0.75;">{{ p.dikirim_pada[:16] }}</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-square-text display-5 opacity-25 d-block mb-2"></i>
+                        <p class="small mb-0">Belum ada riwayat pesan percakapan untuk tiket ini.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Form Admin Tambah Catatan Supervisi -->
+            <div class="p-3 px-4 bg-white border-top">
+                <form method="POST" action="{{ url_for('admin_detail_tiket', tiket_id=tiket.tiket_id) }}">
+                    <input type="hidden" name="aksi" value="balas">
+                    <label class="form-label small fw-semibold text-secondary mb-1">
+                        <i class="bi bi-pencil-square me-1"></i>Kirim Catatan Supervisi Admin ke Ruang Percakapan:
+                    </label>
+                    <div class="input-group">
+                        <input type="text" name="isi" class="form-control bg-light border-light-subtle rounded-start-pill ps-4 fs-6"
+                               placeholder="Tulis instruksi admin atau catatan supervisi..." required>
+                        <button type="submit" class="btn btn-warning px-4 rounded-end-pill fw-bold shadow-sm d-flex align-items-center gap-2 text-dark">
+                            <i class="bi bi-send-fill"></i>
+                            <span>Kirim Catatan</span>
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 d-block ps-2" style="font-size: 11.5px;">
+                        Catatan ini akan tampil di riwayat percakapan tiket sebagai pesan resmi dari Administrator.
+                    </small>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= KOLOM KANAN: KONTROL SUPERVISI & AUDIT TRAIL ================= -->
+    <div class="col-12 col-lg-4">
+
+        <!-- Alokasikan / Re-assign CS -->
+        <div class="card-modern p-4 bg-white mb-4">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-person-gear text-primary me-2"></i>Tugaskan Petugas CS
+            </h6>
+            <form method="POST" action="{{ url_for('admin_detail_tiket', tiket_id=tiket.tiket_id) }}">
+                <input type="hidden" name="aksi" value="assign">
+                <label for="karyawan_id" class="form-label small text-secondary">Pilih Staf Customer Service:</label>
+                <select name="karyawan_id" id="karyawan_id" class="form-select bg-light border-light-subtle rounded-3 mb-3" required>
+                    <option value="">— Pilih Petugas CS —</option>
+                    {% for k in karyawan_list %}
+                    <option value="{{ k.user_id }}" {% if tiket.karyawan_id == k.user_id %}selected{% endif %}>
+                        {{ k.nama }} ({{ k.nomor_identitas }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill w-100 fw-semibold">
+                    <i class="bi bi-check-lg me-1"></i> Simpan Penugasan CS
+                </button>
+            </form>
+        </div>
+
+        <!-- Ubah Status Tiket (Admin Override) -->
+        <div class="card-modern p-4 bg-white mb-4">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-arrow-repeat text-primary me-2"></i>Ubah Status Tiket (Override)
+            </h6>
+            <form method="POST" action="{{ url_for('admin_detail_tiket', tiket_id=tiket.tiket_id) }}" class="d-flex flex-column gap-2">
+                <input type="hidden" name="aksi" value="ubah_status">
+
+                {% set statuses = ['Open', 'Assigned', 'In Progress', 'Waiting', 'Closed'] %}
+                {% for st in statuses %}
+                    {% if st != tiket.status %}
+                    <button type="submit" name="status_baru" value="{{ st }}"
+                            class="btn btn-sm btn-light border text-start rounded-3 px-3 py-2 d-flex justify-content-between align-items-center">
+                        <span class="small fw-semibold">Set ke {{ st }}</span>
+                        <i class="bi bi-chevron-right text-muted small"></i>
+                    </button>
+                    {% endif %}
+                {% endfor %}
+            </form>
+        </div>
+
+        <!-- Riwayat Audit Trail (Status Change Log) -->
+        <div class="card-modern p-4 bg-white">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-journal-text text-primary me-2"></i>Riwayat Audit Log
+            </h6>
+            {% if logs %}
+            <div class="d-flex flex-column gap-3 small">
+                {% for log in logs %}
+                <div class="p-2 px-3 bg-light rounded-3 border-start border-3 border-primary">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-dark">{{ log.status_baru }}</strong>
+                        <span class="text-muted" style="font-size: 10px;">{{ log.dicatat_pada[:16] }}</span>
+                    </div>
+                    <div class="text-secondary small mb-1">{{ log.catatan if log.catatan else 'Perubahan status tiket' }}</div>
+                    <small class="text-muted" style="font-size: 10px;">Aktor: {{ log.nama_aktor }} ({{ log.role_aktor | title }})</small>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted small mb-0">Belum ada riwayat perubahan status.</p>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+

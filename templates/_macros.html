@@ -1,0 +1,65 @@
+{# ============================================================
+   _macros.html — Jinja2 macro untuk UI Ticketing Kampus Institut Asia
+   Style: Dribbble Modern SaaS Soft Pill Badges with status dots
+   ============================================================ #}
+
+{# Badge warna modern untuk Status tiket #}
+{% macro badge_status(status) %}
+  {% if status == 'Open' %}
+    <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+      <span class="status-dot bg-secondary"></span> Open
+    </span>
+  {% elif status == 'Assigned' %}
+    <span class="badge rounded-pill bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+      <span class="status-dot bg-info"></span> Assigned
+    </span>
+  {% elif status == 'In Progress' %}
+    <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+      <span class="status-dot bg-primary"></span> In Progress
+    </span>
+  {% elif status == 'Waiting' %}
+    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+      <span class="status-dot bg-warning"></span> Waiting
+    </span>
+  {% elif status == 'Closed' %}
+    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+      <span class="status-dot bg-success"></span> Closed
+    </span>
+  {% else %}
+    <span class="badge rounded-pill bg-light text-dark border px-2 py-1">{{ status }}</span>
+  {% endif %}
+{% endmacro %}
+
+{# Badge warna modern untuk Prioritas tiket #}
+{% macro badge_prioritas(prioritas) %}
+  {% if prioritas == 'Tinggi' %}
+    <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+      <i class="bi bi-arrow-up-circle-fill"></i> Tinggi
+    </span>
+  {% elif prioritas == 'Sedang' %}
+    <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+      <i class="bi bi-dash-circle-fill"></i> Sedang
+    </span>
+  {% else %}
+    <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fw-semibold d-inline-flex align-items-center gap-1">
+      <i class="bi bi-arrow-down-circle-fill"></i> Rendah
+    </span>
+  {% endif %}
+{% endmacro %}
+
+{# Badge warna modern untuk Role pengguna kampus #}
+{% macro badge_role(role) %}
+  {% if role == 'admin' %}
+    <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-semibold">
+      <i class="bi bi-shield-lock-fill me-1"></i>Administrator
+    </span>
+  {% elif role == 'karyawan' %}
+    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-semibold">
+      <i class="bi bi-headset me-1"></i>Helpdesk CS
+    </span>
+  {% else %}
+    <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fw-semibold">
+      <i class="bi bi-mortarboard-fill me-1"></i>Mahasiswa
+    </span>
+  {% endif %}
+{% endmacro %}

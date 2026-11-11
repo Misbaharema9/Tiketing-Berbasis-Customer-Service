@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Selamat Datang — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<div class="row align-items-center py-5">
+    <div class="col-lg-7 mb-4 mb-lg-0">
+        <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-semibold mb-3">
+            <i class="bi bi-patch-check-fill me-1"></i> Layanan Resmi Mahasiswa &amp; Sivitas Akademika
+        </span>
+        <h1 class="display-5 fw-bold text-dark lh-sm mb-3">
+            Sistem Tiketing Berbasis Customer Service <span class="text-primary">Institut Asia</span>
+        </h1>
+        <p class="fs-5 text-secondary mb-4 leading-relaxed">
+            Satu sistem terintegrasi untuk melayani keluhan fasilitas, kendala sistem akademik SIMAKA, pembayaran UKT, peminjaman buku perpustakaan, hingga layanan darurat kampus.
+        </p>
+
+        <div class="d-flex flex-wrap gap-3">
+            <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center gap-2">
+                <i class="bi bi-box-arrow-in-right"></i> Masuk ke Portal Layanan
+            </a>
+            <a href="#kategori" class="btn btn-outline-secondary btn-lg rounded-pill px-4 fw-semibold">
+                Lihat Kategori Bantuan
+            </a>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card-modern p-4 p-md-5 border-0 shadow-lg text-center bg-white">
+            <div class="rounded-circle p-4 d-inline-flex align-items-center justify-content-center text-primary mb-3 bg-primary bg-opacity-10" style="width: 88px; height: 88px;">
+                <i class="bi bi-headset display-4"></i>
+            </div>
+            <h4 class="fw-bold mb-2 text-dark">Customer Service Kampus</h4>
+            <p class="text-muted small mb-4">
+                Petugas Customer Service kami siap melayani dan menyelesaikan kendala perkuliahan Anda secara cepat, transparan, dan terukur.
+            </p>
+            <div class="row g-2 text-start">
+                <div class="col-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block">Jam Layanan</small>
+                        <strong class="text-dark">08.00 - 16.00 WIB</strong>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="p-3 bg-light rounded-3 border">
+                        <small class="text-muted d-block">Standar Respon</small>
+                        <strong class="text-success">&lt; 30 Menit</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kategori Layanan Kampus Section -->
+<div id="kategori" class="pt-5 mt-4 border-top">
+    <div class="text-center mb-5">
+        <h3 class="fw-bold text-dark">Kategori Layanan Bantuan Kampus</h3>
+        <p class="text-muted">Pilih unit layanan yang sesuai dengan kebutuhan Anda di Institut Asia</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card-modern p-4 h-100 border-0 shadow-sm">
+                <div class="p-3 bg-primary bg-opacity-10 text-primary rounded-4 d-inline-block mb-3">
+                    <i class="bi bi-book-half fs-3"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Layanan Akademik</h5>
+                <p class="text-muted small mb-0">Kendala KRS, pengajuan cuti kuliah, transkrip nilai, jadwal ujian, dan surat keterangan aktif kuliah.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-modern p-4 h-100 border-0 shadow-sm">
+                <div class="p-3 bg-success bg-opacity-10 text-success rounded-4 d-inline-block mb-3">
+                    <i class="bi bi-wallet2 fs-3"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Keuangan &amp; UKT</h5>
+                <p class="text-muted small mb-0">Verifikasi pembayaran SPP/UKT, pengajuan dispensasi, beasiswa KIP-K, dan biaya praktikum.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-modern p-4 h-100 border-0 shadow-sm">
+                <div class="p-3 bg-info bg-opacity-10 text-info fs-3 rounded-4 d-inline-block mb-3">
+                    <i class="bi bi-laptop"></i>
+                </div>
+                <h5 class="fw-bold text-dark">IT &amp; Portal SIMAKA</h5>
+                <p class="text-muted small mb-0">Reset password email kampus @student.asia.ac.id, login portal SIMAKA, dan akses WiFi kampus.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card-modern p-4 h-100 border-0 shadow-sm">
+                <div class="p-3 bg-warning bg-opacity-10 text-warning-emphasis fs-3 rounded-4 d-inline-block mb-3">
+                    <i class="bi bi-journal-bookmark-fill"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Perpustakaan Digital</h5>
+                <p class="text-muted small mb-0">Bebas pustaka wisuda, akses repositori skripsi, peminjaman buku referensi, dan turnitin similarity check.</p>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card-modern p-4 h-100 border-0 shadow-sm">
+                <div class="p-3 bg-danger bg-opacity-10 text-danger fs-3 rounded-4 d-inline-block mb-3">
+                    <i class="bi bi-tools"></i>
+                </div>
+                <h5 class="fw-bold text-dark">Sarana &amp; Prasarana</h5>
+                <p class="text-muted small mb-0">Perbaikan AC ruang kelas, proyektor laboratorium komputer, fasilitas toilet, parkir, dan loker kampus.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

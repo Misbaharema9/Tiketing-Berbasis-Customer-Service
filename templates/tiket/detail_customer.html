@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% from '_macros.html' import badge_status, badge_prioritas %}
+
+{% block title %}Detail Tiket {{ tiket.nomor_unik }} — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard_customer') }}" class="text-decoration-none">Riwayat Tiket</a></li>
+        <li class="breadcrumb-item active">{{ tiket.nomor_unik }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- ================= KOLOM KIRI: RINCIAN & CHAT PERCAKAPAN ================= -->
+    <div class="col-12 col-lg-8">
+
+        <!-- Card Header Tiket -->
+        <div class="card-modern p-4 mb-4 bg-white">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-start justify-content-between gap-3 mb-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <code class="fw-bold text-primary fs-6">{{ tiket.nomor_unik }}</code>
+                        <span class="badge rounded-pill bg-light text-dark border small">{{ tiket.nama_kategori }}</span>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-1">{{ tiket.judul }}</h4>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-clock me-1"></i>Diajukan pada {{ tiket.dibuat_pada[:16] }}
+                        {% if tiket.nama_karyawan %}
+                        &bull;
+                        <span class="text-success fw-semibold"><i class="bi bi-headset me-1 ms-1"></i>CS Penangan: {{ tiket.nama_karyawan }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    {{ badge_status(tiket.status) }}
+                    {{ badge_prioritas(tiket.prioritas) }}
+                </div>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 border">
+                <small class="text-secondary fw-semibold d-block mb-1">Rincian Laporan Anda:</small>
+                <p class="mb-0 text-dark" style="white-space: pre-line;">{{ tiket.deskripsi }}</p>
+            </div>
+        </div>
+
+        <!-- Percakapan dengan Helpdesk CS -->
+        <div class="card-modern p-0 bg-white overflow-hidden mb-4 shadow-sm">
+            <div class="p-3 px-4 bg-light border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-left-dots-fill text-primary"></i>
+                    Percakapan Solusi dengan Petugas CS
+                    <span class="badge rounded-pill bg-primary ms-1">{{ pesans | length }}</span>
+                </h6>
+                <small class="text-muted">Pusat Layanan Mahasiswa Asia</small>
+            </div>
+
+            <!-- Chat Bubble List -->
+            <div class="p-4" style="max-height: 440px; overflow-y: auto; background: #F8FAFC;">
+                {% if pesans %}
+                    {% for p in pesans %}
+                        {% set is_me = p.role_pengirim == 'customer' %}
+                        <div class="d-flex mb-3 {% if is_me %}flex-row-reverse{% endif %}">
+                            <div class="p-3 rounded-4 shadow-xs"
+                                 style="max-width: 80%; {% if is_me %}background: #2563EB; color: #FFFFFF; border-bottom-right-radius: 4px;{% else %}background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; border-bottom-left-radius: 4px;{% endif %}">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <strong class="small {% if is_me %}text-white{% else %}text-success{% endif %}">
+                                        {{ p.nama_pengirim }}
+                                    </strong>
+                                    <span class="badge rounded-pill {% if is_me %}bg-white text-primary{% else %}bg-success-subtle text-success{% endif %}" style="font-size: 10px;">
+                                        {{ 'Saya' if is_me else 'Petugas CS' }}
+                                    </span>
+                                </div>
+                                <p class="mb-1 small" style="white-space: pre-line;">{{ p.isi }}</p>
+                                <div class="text-end" style="font-size: 10px; opacity: 0.75;">{{ p.dikirim_pada[:16] }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-hourglass-split display-5 text-warning d-block mb-2"></i>
+                        <p class="small mb-0">Tiket Anda telah masuk ke antrean helpdesk. Petugas CS kami akan segera merespons di sini.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Form Kirim Pesan Mahasiswa -->
+            {% if tiket.status != 'Closed' %}
+            <div class="p-3 px-4 bg-white border-top">
+                {% if tiket.status == 'Open' %}
+                <div class="alert alert-warning py-2 px-3 small rounded-3 mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle-fill fs-6 text-warning"></i>
+                    <div>Tiket Anda berstatus <strong>Open</strong> dan sedang dalam antrean petugas helpdesk kampus. Anda tetap dapat menambahkan pesan atau keterangan tambahan di bawah.</div>
+                </div>
+                {% endif %}
+                <form method="POST" action="{{ url_for('customer_detail_tiket', tiket_id=tiket.tiket_id) }}">
+                    <div class="input-group">
+                        <input type="text" name="isi" class="form-control form-control-lg bg-light border-light-subtle rounded-start-pill ps-4 fs-6"
+                               placeholder="Ketik balasan atau informasi tambahan untuk petugas..." required>
+                        <button type="submit" class="btn btn-primary px-4 rounded-end-pill fw-bold shadow-sm d-flex align-items-center gap-2">
+                            <i class="bi bi-send-fill"></i>
+                            <span>Kirim Pesan</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="p-3 bg-light text-center text-muted small border-top">
+                <i class="bi bi-check-circle-fill text-success me-1"></i> Tiket telah selesai ditutup oleh petugas. Terima kasih telah menggunakan layanan helpdesk Institut Asia.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ================= KOLOM KANAN: TRACKER STATUS TIKET ================= -->
+    <div class="col-12 col-lg-4">
+        <!-- Visual Step Tracker -->
+        <div class="card-modern p-4 bg-white mb-4">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-signpost-2-fill text-primary me-2"></i>Tahapan Penanganan Tiket
+            </h6>
+
+            {% set steps = [
+                ('Open', 'Pengajuan Masuk', 'Tiket diterima sistem antrean'),
+                ('Assigned', 'Dialokasikan ke CS', 'Petugas helpdesk ditugaskan'),
+                ('In Progress', 'Sedang Diproses', 'Komunikasi & tindakan solusi'),
+                ('Waiting', 'Menunggu Mahasiswa', 'Memerlukan info/konfirmasi pelapor'),
+                ('Closed', 'Selesai & Ditutup', 'Kendala dinyatakan tuntas')
+            ] %}
+            {% set step_keys = ['Open', 'Assigned', 'In Progress', 'Waiting', 'Closed'] %}
+            {% set current_idx = step_keys.index(tiket.status) if tiket.status in step_keys else 0 %}
+
+            <div class="d-flex flex-column gap-3">
+                {% for key, title, desc in steps %}
+                    {% set step_idx = loop.index0 %}
+                    {% set is_passed = step_idx <= current_idx %}
+                    {% set is_current = step_idx == current_idx %}
+
+                    <div class="d-flex align-items-start gap-3 position-relative">
+                        <!-- Dot Indicator -->
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white flex-shrink-0 mt-1 shadow-xs"
+                             style="width: 28px; height: 28px; font-size: 12px; {% if is_passed %}background: #10B981;{% else %}background: #E2E8F0; color: #94A3B8;{% endif %}">
+                            {% if is_passed %}<i class="bi bi-check-lg"></i>{% else %}{{ loop.index }}{% endif %}
+                        </div>
+
+                        <div>
+                            <strong class="d-block small {% if is_current %}text-primary fw-bold{% elif is_passed %}text-dark{% else %}text-muted{% endif %}">
+                                {{ title }}
+                            </strong>
+                            <small class="text-muted" style="font-size: 11px;">{{ desc }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Helpdesk Info Card -->
+        <div class="card-modern p-4 bg-white">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-info-circle text-primary me-2"></i>Informasi Bantuan Kampus
+            </h6>
+            <p class="small text-muted mb-3">
+                Jika memerlukan bantuan darurat atau konfirmasi tatap muka, silakan kunjungi kantor layanan terpadu:
+            </p>
+            <div class="p-3 bg-light rounded-3 small">
+                <strong class="text-dark d-block mb-1">Gedung Pusat Akademik &amp; Kemahasiswaan</strong>
+                <div class="text-secondary">Kampus Institut Asia Malang</div>
+                <div class="text-muted mt-1"><i class="bi bi-envelope me-1"></i> helpdesk@asia.ac.id</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

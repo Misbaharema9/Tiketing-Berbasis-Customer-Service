@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% from '_macros.html' import badge_status, badge_prioritas %}
+
+{% block title %}Tangani Tiket {{ tiket.nomor_unik }} — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('karyawan_antrian') }}" class="text-decoration-none">Antrean Tiket</a></li>
+        <li class="breadcrumb-item active">{{ tiket.nomor_unik }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- ================= KOLOM UTAMA: DETAIL KENDALA & CHAT PERCAKAPAN ================= -->
+    <div class="col-12 col-lg-8">
+
+        <!-- Card Header Tiket -->
+        <div class="card-modern p-4 mb-4 bg-white">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-start justify-content-between gap-3 mb-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <code class="fw-bold text-primary fs-6">{{ tiket.nomor_unik }}</code>
+                        <span class="badge rounded-pill bg-light text-dark border small">{{ tiket.nama_kategori }}</span>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-1">{{ tiket.judul }}</h4>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-person-fill text-primary me-1"></i>Pelapor: <strong>{{ tiket.nama_customer }}</strong>
+                        &bull;
+                        <i class="bi bi-clock me-1 ms-2"></i>{{ tiket.dibuat_pada[:16] }}
+                    </p>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    {{ badge_status(tiket.status) }}
+                    {{ badge_prioritas(tiket.prioritas) }}
+                </div>
+            </div>
+            <div class="p-3 bg-light rounded-3 border">
+                <small class="text-secondary fw-semibold d-block mb-1">Rincian Laporan Awal Mahasiswa:</small>
+                <p class="mb-0 text-dark" style="white-space: pre-line;">{{ tiket.deskripsi }}</p>
+            </div>
+        </div>
+
+        <!-- Percakapan / Chat Konsol -->
+        <div class="card-modern p-0 bg-white overflow-hidden mb-4 shadow-sm">
+            <div class="p-3 px-4 bg-light border-bottom d-flex align-items-center justify-content-between">
+                <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-left-dots-fill text-primary"></i>
+                    Percakapan Solusi Helpdesk
+                    <span class="badge rounded-pill bg-primary ms-1">{{ pesans | length }}</span>
+                </h6>
+                <small class="text-muted">Komunikasi langsung dengan mahasiswa</small>
+            </div>
+
+            <!-- Chat Message List Container -->
+            <div class="p-4" style="max-height: 440px; overflow-y: auto; background: #F8FAFC;">
+                {% if pesans %}
+                    {% for p in pesans %}
+                        {% set is_cs = p.role_pengirim in ('karyawan', 'admin') %}
+                        <div class="d-flex mb-3 {% if is_cs %}flex-row-reverse{% endif %}">
+                            <div class="p-3 rounded-4 shadow-xs"
+                                 style="max-width: 80%; {% if is_cs %}background: #2563EB; color: #FFFFFF; border-bottom-right-radius: 4px;{% else %}background: #FFFFFF; color: #1E293B; border: 1px solid #E2E8F0; border-bottom-left-radius: 4px;{% endif %}">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <strong class="small {% if is_cs %}text-white{% else %}text-primary{% endif %}">
+                                        {{ p.nama_pengirim }}
+                                    </strong>
+                                    <span class="badge rounded-pill {% if is_cs %}bg-white text-primary{% else %}bg-primary-subtle text-primary{% endif %}" style="font-size: 10px;">
+                                        {{ 'Helpdesk CS' if is_cs else 'Mahasiswa' }}
+                                    </span>
+                                </div>
+                                <p class="mb-1 small" style="white-space: pre-line;">{{ p.isi }}</p>
+                                <div class="text-end" style="font-size: 10px; opacity: 0.75;">{{ p.dikirim_pada[:16] }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-chat-square-text display-5 opacity-25 d-block mb-2"></i>
+                        <p class="small mb-0">Belum ada riwayat percakapan. Kirim respons pertama Anda kepada mahasiswa di bawah.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Form Balas Pesan -->
+            {% if tiket.status != 'Closed' %}
+            <div class="p-3 px-4 bg-white border-top">
+                <form method="POST" action="{{ url_for('karyawan_detail_tiket', tiket_id=tiket.tiket_id) }}">
+                    <input type="hidden" name="aksi" value="balas">
+                    <div class="input-group">
+                        <input type="text" name="isi" class="form-control form-control-lg bg-light border-light-subtle rounded-start-pill ps-4 fs-6"
+                               placeholder="Ketik solusi atau petunjuk untuk mahasiswa..." required autofocus>
+                        <button type="submit" class="btn btn-primary px-4 rounded-end-pill fw-bold shadow-sm d-flex align-items-center gap-2">
+                            <i class="bi bi-send-fill"></i>
+                            <span>Kirim Solusi</span>
+                        </button>
+                    </div>
+                    <small class="text-muted mt-2 d-block ps-2" style="font-size: 11.5px;">
+                        <i class="bi bi-info-circle me-1"></i> Mengirim balasan pertama akan otomatis mengubah status tiket menjadi <strong>In Progress</strong>.
+                    </small>
+                </form>
+            </div>
+            {% else %}
+            <div class="p-3 bg-light text-center text-muted small border-top">
+                <i class="bi bi-lock-fill me-1"></i> Tiket telah selesai ditutup (Closed). Percakapan telah diarsipkan.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ================= KOLOM KANAN: PANEL KONTROL STATUS ================= -->
+    <div class="col-12 col-lg-4">
+        <!-- Panel Update Status -->
+        <div class="card-modern p-4 bg-white mb-4">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-sliders text-primary me-2"></i>Perbarui Status Penanganan
+            </h6>
+            
+            <div class="mb-3">
+                <small class="text-muted d-block">Status Saat Ini:</small>
+                <div class="mt-1">{{ badge_status(tiket.status) }}</div>
+            </div>
+
+            {% if tiket.status != 'Closed' %}
+            <form method="POST" action="{{ url_for('karyawan_detail_tiket', tiket_id=tiket.tiket_id) }}" class="d-flex flex-column gap-2">
+                <input type="hidden" name="aksi" value="ubah_status">
+
+                {% if tiket.status in ('Assigned', 'Waiting') %}
+                <button type="submit" name="status_baru" value="In Progress"
+                        class="btn btn-outline-primary rounded-3 text-start p-2 d-flex align-items-center gap-2">
+                    <i class="bi bi-play-circle-fill fs-5 text-primary"></i>
+                    <div>
+                        <strong class="d-block small">Set "In Progress"</strong>
+                        <small class="text-muted" style="font-size: 11px;">Masalah sedang aktif dikerjakan</small>
+                    </div>
+                </button>
+                {% endif %}
+
+                {% if tiket.status in ('Assigned', 'In Progress') %}
+                <button type="submit" name="status_baru" value="Waiting"
+                        class="btn btn-outline-warning rounded-3 text-start p-2 d-flex align-items-center gap-2 text-dark">
+                    <i class="bi bi-pause-circle-fill fs-5 text-warning"></i>
+                    <div>
+                        <strong class="d-block small">Set "Waiting"</strong>
+                        <small class="text-muted" style="font-size: 11px;">Menunggu verifikasi / konfirmasi mahasiswa</small>
+                    </div>
+                </button>
+                {% endif %}
+
+                {% if tiket.status in ('In Progress', 'Waiting', 'Assigned') %}
+                <button type="submit" name="status_baru" value="Closed"
+                        class="btn btn-success rounded-3 text-start p-2 d-flex align-items-center gap-2 shadow-sm"
+                        onclick="return confirm('Tutup tiket ini dan nyatakan permasalahan selesai?');">
+                    <i class="bi bi-check-circle-fill fs-5 text-white"></i>
+                    <div>
+                        <strong class="d-block small text-white">Tutup Tiket (Closed)</strong>
+                        <small class="text-white-50" style="font-size: 11px;">Kendala terselesaikan tuntas</small>
+                    </div>
+                </button>
+                {% endif %}
+            </form>
+            {% else %}
+            <div class="alert alert-success border-0 rounded-3 p-3 mb-0 text-center">
+                <i class="bi bi-check2-circle fs-3 text-success d-block mb-1"></i>
+                <strong class="small text-success d-block">Tiket Telah Selesai</strong>
+                <small class="text-muted">Kasus penanganan ditutup tuntas.</small>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Info Tambahan -->
+        <div class="card-modern p-4 bg-white">
+            <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-info-circle text-primary me-2"></i>Informasi Layanan
+            </h6>
+            <div class="d-flex flex-column gap-2 small">
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Kategori:</span>
+                    <strong class="text-dark">{{ tiket.nama_kategori }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Prioritas:</span>
+                    {{ badge_prioritas(tiket.prioritas) }}
+                </div>
+                <div class="d-flex justify-content-between py-1 border-bottom">
+                    <span class="text-muted">Pelapor:</span>
+                    <strong class="text-dark">{{ tiket.nama_customer }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                    <span class="text-muted">Update Terakhir:</span>
+                    <span class="text-secondary">{{ tiket.diperbarui[:16] }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

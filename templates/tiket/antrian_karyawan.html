@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% from '_macros.html' import badge_status, badge_prioritas %}
+
+{% block title %}Antrean Tiket — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item active">Antrean Tiket Masuk</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">
+            <i class="bi bi-inbox-fill text-primary me-2"></i>Antrean Tiket Layanan Kampus
+        </h4>
+        <p class="text-muted small mb-0">
+            Daftar pengajuan keluhan mahasiswa yang sedang menunggu respon dari tim helpdesk
+        </p>
+    </div>
+    <span class="badge rounded-pill bg-primary px-3 py-2 fw-semibold">
+        {{ antrian_open | length }} Tiket Mengantre
+    </span>
+</div>
+
+<!-- ================= 1. ANTREAN TIKET BARU MASUK (OPEN) ================= -->
+<div class="card-modern p-4 mb-4 bg-white border-top border-4 border-warning">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-3">
+        <div>
+            <h5 class="fw-bold text-dark mb-1">
+                <i class="bi bi-bell-fill text-warning me-2"></i>Tiket Baru Masuk — Menunggu Diambil
+            </h5>
+            <p class="text-muted small mb-0">Klik tombol "Ambil & Tangani" untuk menetapkan diri Anda sebagai petugas penangan</p>
+        </div>
+        <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2 fw-semibold small">
+            Status Open
+        </span>
+    </div>
+
+    {% if antrian_open %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light rounded-3">
+                <tr class="text-secondary small">
+                    <th class="ps-3 border-0">Nomor Tiket</th>
+                    <th class="border-0">Topik Permasalahan</th>
+                    <th class="border-0">Mahasiswa / Pelapor</th>
+                    <th class="border-0">Kategori</th>
+                    <th class="border-0">Prioritas</th>
+                    <th class="border-0">Waktu Masuk</th>
+                    <th class="border-0 text-center">Tindakan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in antrian_open %}
+                <tr class="{{ 'table-danger-subtle' if t.prioritas == 'Tinggi' else '' }}">
+                    <td class="ps-3">
+                        <code class="fw-bold text-primary">{{ t.nomor_unik }}</code>
+                    </td>
+                    <td>
+                        <span class="fw-semibold text-dark text-truncate d-inline-block" style="max-width: 240px;" title="{{ t.judul }}">
+                            {{ t.judul }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center text-primary fw-bold"
+                                 style="width: 28px; height: 28px; font-size: 11px;">
+                                {{ t.nama_customer[:2] | upper }}
+                            </div>
+                            <span class="small fw-semibold text-dark">{{ t.nama_customer }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill bg-light text-dark border small">{{ t.nama_kategori }}</span>
+                    </td>
+                    <td>{{ badge_prioritas(t.prioritas) }}</td>
+                    <td class="text-muted small">{{ t.dibuat_pada[:16] }}</td>
+                    <td class="text-center">
+                        <form method="POST" action="{{ url_for('karyawan_ambil_tiket', tiket_id=t.tiket_id) }}" class="d-inline"
+                              onsubmit="return confirm('Ambil tiket {{ t.nomor_unik }} untuk mulai ditangani?');">
+                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm fw-semibold">
+                                <i class="bi bi-hand-index-fill me-1"></i> Ambil &amp; Tangani
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-check2-all display-5 text-success d-block mb-2"></i>
+        <h6 class="fw-bold text-dark mb-1">Semua Tiket Telah Diambil</h6>
+        <p class="small mb-0">Tidak ada pengajuan tiket baru yang mengantre saat ini.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- ================= 2. TIKET YANG SEDANG SAYA TANGANI ================= -->
+<div class="card-modern p-4 bg-white border-top border-4 border-primary">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-3">
+        <div>
+            <h5 class="fw-bold text-dark mb-1">
+                <i class="bi bi-person-check-fill text-primary me-2"></i>Tiket Yang Sedang Saya Tangani
+            </h5>
+            <p class="text-muted small mb-0">Tiket aktif yang saat ini menjadi tanggung jawab penanganan Anda</p>
+        </div>
+        <span class="badge rounded-pill bg-primary ms-2">{{ tiket_saya | length }} Tiket Aktif</span>
+    </div>
+
+    {% if tiket_saya %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light rounded-3">
+                <tr class="text-secondary small">
+                    <th class="ps-3 border-0">Nomor</th>
+                    <th class="border-0">Topik Kendala</th>
+                    <th class="border-0">Mahasiswa</th>
+                    <th class="border-0">Kategori</th>
+                    <th class="border-0">Prioritas</th>
+                    <th class="border-0">Status</th>
+                    <th class="border-0 text-center">Aksi Percakapan</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in tiket_saya %}
+                <tr>
+                    <td class="ps-3">
+                        <code class="fw-bold text-primary">{{ t.nomor_unik }}</code>
+                    </td>
+                    <td>
+                        <span class="fw-semibold text-dark text-truncate d-inline-block" style="max-width: 240px;" title="{{ t.judul }}">
+                            {{ t.judul }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="small fw-semibold text-dark">{{ t.nama_customer }}</span>
+                    </td>
+                    <td>
+                        <span class="badge rounded-pill bg-light text-dark border small">{{ t.nama_kategori }}</span>
+                    </td>
+                    <td>{{ badge_prioritas(t.prioritas) }}</td>
+                    <td>{{ badge_status(t.status) }}</td>
+                    <td class="text-center">
+                        <a href="{{ url_for('karyawan_detail_tiket', tiket_id=t.tiket_id) }}" class="btn btn-sm btn-primary rounded-pill px-3 fw-semibold shadow-sm">
+                            <i class="bi bi-chat-dots-fill me-1"></i> Buka Chat
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-inbox display-5 text-secondary opacity-50 d-block mb-2"></i>
+        <h6 class="fw-bold text-dark mb-1">Belum Ada Tiket yang Anda Pegang</h6>
+        <p class="small mb-0">Silakan ambil tiket dari antrean di atas untuk mulai berkomunikasi dengan mahasiswa.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

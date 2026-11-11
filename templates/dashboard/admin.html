@@ -1,0 +1,449 @@
+{% extends "base.html" %}
+{% from '_macros.html' import badge_status, badge_prioritas, badge_role %}
+
+{% block title %}Dashboard Administrator — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">
+            <i class="bi bi-grid-1x2-fill text-primary me-2"></i>Dashboard Sistem Tiketing Berbasis Customer Service
+        </h4>
+        <p class="text-muted small mb-0">
+            Monitoring kinerja operasional layanan dan antrean pengaduan kampus <strong>Institut Asia Malang</strong>.
+        </p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('admin_tiket') }}" class="btn btn-primary rounded-pill px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2 small">
+            <i class="bi bi-list-task"></i>
+            <span>Kelola Semua Tiket</span>
+        </a>
+    </div>
+</div>
+
+<!-- ================= 4 KARTU STATISTIK UTAMA ================= -->
+<div class="row g-3 mb-4">
+    <!-- Card 1: Total Tiket Masuk -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-modern p-3 p-xl-4 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Total Pengajuan</span>
+                <div class="p-2 rounded-3 text-primary" style="background: rgba(37, 99, 235, 0.1);">
+                    <i class="bi bi-ticket-perforated-fill fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+                <h2 class="fw-bold text-dark mb-0">{{ stats.total_tiket }}</h2>
+                <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle small fw-semibold">
+                    <i class="bi bi-graph-up-arrow"></i> +12% bln ini
+                </span>
+            </div>
+            <p class="text-muted small mb-0">Total akumulasi tiket keluhan &amp; layanan</p>
+        </div>
+    </div>
+
+    <!-- Card 2: Tiket Selesai (Closed) -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-modern p-3 p-xl-4 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Tiket Teratasi</span>
+                <div class="p-2 rounded-3 text-success" style="background: rgba(16, 185, 129, 0.1);">
+                    <i class="bi bi-check2-circle fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+                <h2 class="fw-bold text-success mb-0">{{ stats.closed }}</h2>
+                {% set res_pct = ((stats.closed / stats.total_tiket * 100) | round | int) if stats.total_tiket > 0 else 100 %}
+                <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle small fw-semibold">
+                    {{ res_pct }}% Resolusi
+                </span>
+            </div>
+            <p class="text-muted small mb-0">Status Closed berhasil diselesaikan CS</p>
+        </div>
+    </div>
+
+    <!-- Card 3: Dalam Penanganan (Assigned + In Progress) -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-modern p-3 p-xl-4 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Sedang Ditangani</span>
+                <div class="p-2 rounded-3 text-info" style="background: rgba(6, 182, 212, 0.1);">
+                    <i class="bi bi-chat-dots-fill fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+                <h2 class="fw-bold text-info-emphasis mb-0">{{ stats.in_progress + stats.assigned }}</h2>
+                <span class="badge rounded-pill bg-info-subtle text-info-emphasis border border-info-subtle small fw-semibold">
+                    {{ stats.in_progress }} Aktif Chat
+                </span>
+            </div>
+            <p class="text-muted small mb-0">Tiket berstatus Assigned &amp; In Progress</p>
+        </div>
+    </div>
+
+    <!-- Card 4: Antrean Menunggu CS (Open) -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card-modern p-3 p-xl-4 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-secondary small fw-semibold text-uppercase tracking-wider">Antrean Tiket Baru</span>
+                <div class="p-2 rounded-3 text-warning" style="background: rgba(245, 158, 11, 0.1);">
+                    <i class="bi bi-hourglass-split fs-5"></i>
+                </div>
+            </div>
+            <div class="d-flex align-items-baseline gap-2 mb-2">
+                <h2 class="fw-bold text-warning-emphasis mb-0">{{ stats.open }}</h2>
+                <span class="badge rounded-pill bg-warning-subtle text-warning-emphasis border border-warning-subtle small fw-semibold">
+                    Status Open
+                </span>
+            </div>
+            <p class="text-muted small mb-0">Menunggu dialokasikan &amp; direspons CS</p>
+        </div>
+    </div>
+</div>
+
+<!-- ================= GRAFIK PRODUKTIVITAS & DONUT KATEGORI KAMPUS ================= -->
+<div class="row g-4 mb-4">
+    <!-- Chart Kiri: Productivity Penanganan Tiket -->
+    <div class="col-12 col-lg-8">
+        <div class="card-modern p-4 h-100 bg-white">
+            <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-4">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-graph-up text-primary me-2"></i>Tren Produktivitas Helpdesk (Productivity)
+                    </h5>
+                    <p class="text-muted small mb-0">Volume tiket masuk vs tiket terselesaikan per hari kerja</p>
+                </div>
+                <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border">
+                    <button type="button" class="btn btn-sm btn-white active rounded-pill fw-semibold shadow-xs">Minggu Ini</button>
+                    <button type="button" class="btn btn-sm text-secondary rounded-pill">Bulan Ini</button>
+                </div>
+            </div>
+            <!-- Canvas Chart.js -->
+            <div style="position: relative; height: 280px; width: 100%;">
+                <canvas id="productivityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Kanan: Donut Chart Kategori Kampus -->
+    <div class="col-12 col-lg-4">
+        <div class="card-modern p-4 h-100 bg-white">
+            <div class="mb-3">
+                <h5 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-pie-chart-fill text-primary me-2"></i>Tiket per Kategori Kampus
+                </h5>
+                <p class="text-muted small mb-0">Distribusi keluhan sivitas akademika Institut Asia</p>
+            </div>
+            
+            <!-- Canvas Donut -->
+            <div style="position: relative; height: 190px; width: 100%;" class="my-2">
+                <canvas id="categoryDonutChart"></canvas>
+            </div>
+
+            <!-- Legend Pill Kategori Kampus -->
+            <div class="mt-3 pt-2 border-top">
+                <div class="row g-2 small">
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle" style="width: 10px; height: 10px; background-color: #2563EB;"></span>
+                            <span class="text-secondary">Akademik</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle" style="width: 10px; height: 10px; background-color: #10B981;"></span>
+                            <span class="text-secondary">Keuangan / UKT</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle" style="width: 10px; height: 10px; background-color: #06B6D4;"></span>
+                            <span class="text-secondary">IT / SIMAKA</span>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle" style="width: 10px; height: 10px; background-color: #F59E0B;"></span>
+                            <span class="text-secondary">Perpustakaan</span>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="rounded-circle" style="width: 10px; height: 10px; background-color: #EF4444;"></span>
+                            <span class="text-secondary">Sarana &amp; Prasarana</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= KEPUASAN MAHASISWA & TABEL TIKET TERBARU ================= -->
+<div class="row g-4 mb-4">
+    <!-- Card Customer / Mahasiswa Satisfaction -->
+    <div class="col-12 col-lg-4">
+        <div class="card-modern p-4 h-100 bg-white d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-emoji-smile-fill text-warning me-2"></i>Kepuasan Mahasiswa
+                    </h5>
+                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill small">
+                        CSAT 96%
+                    </span>
+                </div>
+                <p class="text-muted small mb-3">Evaluasi layanan helpdesk berdasarkan umpan balik mahasiswa Institut Asia</p>
+
+                <!-- Big Rating Score -->
+                <div class="p-3 bg-light rounded-4 text-center mb-3">
+                    <h1 class="display-5 fw-extrabold text-dark mb-0">4.8<span class="fs-5 text-muted fw-normal">/5.0</span></h1>
+                    <div class="text-warning fs-5 my-1">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </div>
+                    <small class="text-muted">Berdasarkan penilaian mahasiswa setelah tiket ditutup</small>
+                </div>
+
+                <!-- Star Breakdown Bar -->
+                <div class="d-flex flex-column gap-2 small">
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="width: 45px;">5 Bintang</span>
+                        <div class="progress flex-grow-1" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: 85%;"></div>
+                        </div>
+                        <span class="text-muted" style="width: 30px;">85%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="width: 45px;">4 Bintang</span>
+                        <div class="progress flex-grow-1" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: 12%;"></div>
+                        </div>
+                        <span class="text-muted" style="width: 30px;">12%</span>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span style="width: 45px;">3 Bintang</span>
+                        <div class="progress flex-grow-1" style="height: 6px;">
+                            <div class="progress-bar bg-warning" style="width: 3%;"></div>
+                        </div>
+                        <span class="text-muted" style="width: 30px;">3%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quote Review Mahasiswa -->
+            <div class="mt-4 pt-3 border-top">
+                <div class="d-flex gap-2">
+                    <i class="bi bi-quote fs-4 text-primary opacity-50 lh-1"></i>
+                    <p class="small text-secondary fst-italic mb-0">
+                        "Respon petugas sangat cepat! Masalah verifikasi pembayaran UKT langsung beres dalam hitungan menit."
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabel 10 Tiket Kampus Terbaru -->
+    <div class="col-12 col-lg-8">
+        <div class="card-modern p-4 h-100 bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div>
+                    <h5 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-clock-history text-primary me-2"></i>Tiket Pengaduan Kampus Terbaru
+                    </h5>
+                    <p class="text-muted small mb-0">10 aktivitas laporan terbaru yang masuk ke sistem helpdesk</p>
+                </div>
+                <a href="{{ url_for('admin_tiket') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                    Lihat Semua
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light rounded-3">
+                        <tr class="text-secondary small">
+                            <th class="ps-3 border-0">Nomor</th>
+                            <th class="border-0">Topik Kendala</th>
+                            <th class="border-0">Mahasiswa</th>
+                            <th class="border-0">Kategori</th>
+                            <th class="border-0">Prioritas</th>
+                            <th class="border-0 text-center">Status</th>
+                            <th class="border-0 text-center">Aksi Supervisi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if tiket_terbaru %}
+                            {% for t in tiket_terbaru %}
+                            <tr>
+                                <td class="ps-3">
+                                    <code class="fw-bold text-primary">{{ t.nomor_unik }}</code>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold text-dark text-truncate d-inline-block" style="max-width: 170px;" title="{{ t.judul }}">
+                                        {{ t.judul }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-light border d-flex align-items-center justify-content-center text-secondary fw-bold"
+                                             style="width: 28px; height: 28px; font-size: 11px;">
+                                            {{ t.nama_customer[:2] | upper }}
+                                        </div>
+                                        <span class="small fw-medium">{{ t.nama_customer }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge rounded-pill bg-light text-dark border small">
+                                        {{ t.nama_kategori }}
+                                    </span>
+                                </td>
+                                <td>{{ badge_prioritas(t.prioritas) }}</td>
+                                <td class="text-center">{{ badge_status(t.status) }}</td>
+                                <td class="text-center">
+                                    <a href="{{ url_for('admin_detail_tiket', tiket_id=t.tiket_id) }}" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-semibold small shadow-xs">
+                                        <i class="bi bi-chat-dots-fill me-1"></i> Pantau Chat
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2 opacity-50"></i>
+                                    Belum ada tiket pengaduan di sistem.
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // ==========================================
+    // 1. Chart.js — Productivity Trend
+    // ==========================================
+    const prodCtx = document.getElementById('productivityChart').getContext('2d');
+    
+    // Gradien Biru Lembut
+    const blueGradient = prodCtx.createLinearGradient(0, 0, 0, 250);
+    blueGradient.addColorStop(0, 'rgba(37, 99, 235, 0.25)');
+    blueGradient.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
+
+    // Gradien Hijau Lembut
+    const greenGradient = prodCtx.createLinearGradient(0, 0, 0, 250);
+    greenGradient.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+    greenGradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+    new Chart(prodCtx, {
+        type: 'line',
+        data: {
+            labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+            datasets: [
+                {
+                    label: 'Tiket Masuk',
+                    data: [12, 19, 15, 22, 18, 8],
+                    borderColor: '#2563EB',
+                    backgroundColor: blueGradient,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#2563EB',
+                    pointRadius: 3
+                },
+                {
+                    label: 'Tiket Selesai (Closed)',
+                    data: [10, 16, 17, 20, 19, 9],
+                    borderColor: '#10B981',
+                    backgroundColor: greenGradient,
+                    fill: true,
+                    tension: 0.4,
+                    borderWidth: 2.5,
+                    pointBackgroundColor: '#10B981',
+                    pointRadius: 3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        boxWidth: 8,
+                        font: { family: 'Plus Jakarta Sans', size: 12, weight: 600 }
+                    }
+                },
+                tooltip: {
+                    backgroundColor: '#0F172A',
+                    padding: 10,
+                    cornerRadius: 8,
+                    bodyFont: { family: 'Plus Jakarta Sans' }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false }
+                },
+                y: {
+                    border: { dash: [4, 4] },
+                    grid: { color: '#E2E8F0' },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // ==========================================
+    // 2. Chart.js — Donut Chart Kategori Kampus
+    // ==========================================
+    const catCtx = document.getElementById('categoryDonutChart').getContext('2d');
+    new Chart(catCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Akademik', 'Keuangan/UKT', 'IT/SIMAKA', 'Perpustakaan', 'Sarana Prasarana'],
+            datasets: [{
+                data: [35, 25, 20, 12, 8],
+                backgroundColor: [
+                    '#2563EB', // Biru Akademik
+                    '#10B981', // Hijau Keuangan
+                    '#06B6D4', // Cyan IT
+                    '#F59E0B', // Kuning Perpustakaan
+                    '#EF4444'  // Merah Sarana
+                ],
+                borderWidth: 3,
+                borderColor: '#FFFFFF',
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '72%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#0F172A',
+                    padding: 10,
+                    cornerRadius: 8,
+                    callbacks: {
+                        label: function(context) {
+                            return ` ${context.label}: ${context.raw}%`;
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Masuk — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-12 col-md-8 col-lg-5 col-xl-4">
+
+        <div class="card-modern border-0 shadow-sm p-4 p-md-5 bg-white">
+            <!-- Header Brand -->
+            <div class="text-center mb-4">
+                <div class="rounded-4 p-3 d-inline-flex align-items-center justify-content-center text-white mb-3 shadow"
+                     style="width: 58px; height: 58px; background: linear-gradient(135deg, #2563EB, #1D4ED8);">
+                    <i class="bi bi-mortarboard-fill fs-2"></i>
+                </div>
+                <h4 class="fw-bold mb-1 text-dark">Sistem Tiketing Berbasis Customer Service</h4>
+                <p class="text-muted small mb-0">Institut Asia Malang</p>
+            </div>
+
+            <!-- Login Form -->
+            <form method="POST" action="{{ url_for('login') }}" novalidate>
+                <div class="mb-3">
+                    <label for="nomor_identitas" class="form-label fw-semibold small text-secondary">
+                        Nomor Identitas (NIM / NIP)
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted">
+                            <i class="bi bi-person-badge"></i>
+                        </span>
+                        <input type="text"
+                               class="form-control bg-light border-start-0"
+                               id="nomor_identitas"
+                               name="nomor_identitas"
+                               placeholder="Contoh: CST-001 / KRY-001 / ADM-001"
+                               value="{{ nomor_identitas | default('') }}"
+                               autocomplete="username"
+                               required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="password" class="form-label fw-semibold small text-secondary">
+                        Kata Sandi
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0 text-muted">
+                            <i class="bi bi-shield-lock"></i>
+                        </span>
+                        <input type="password"
+                               class="form-control bg-light border-start-0 border-end-0"
+                               id="password"
+                               name="password"
+                               placeholder="Masukkan password"
+                               autocomplete="current-password"
+                               required>
+                        <button class="btn btn-light border border-start-0 text-muted" type="button" id="togglePw">
+                            <i class="bi bi-eye" id="togglePwIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="d-grid mb-3">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm py-2 fs-6">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Masuk Sekarang
+                    </button>
+                </div>
+            </form>
+
+            <hr class="my-4 text-muted opacity-25">
+
+            <!-- Demo Account Chips for Quick Testing -->
+            <div class="text-center">
+                <span class="badge bg-light text-secondary border px-3 py-1 mb-3 small">
+                    <i class="bi bi-magic me-1 text-primary"></i> Klik Akun Uji Coba Cepat:
+                </span>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 text-start"
+                            onclick="fillAcc('CST-001', 'rahasia123')">
+                        <i class="bi bi-mortarboard me-1"></i> <strong>Mahasiswa</strong> (CST-001)
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 py-1 text-start"
+                            onclick="fillAcc('KRY-001', 'rahasia123')">
+                        <i class="bi bi-headset me-1"></i> <strong>Helpdesk CS</strong> (KRY-001)
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 text-start"
+                            onclick="fillAcc('ADM-001', 'rahasia123')">
+                        <i class="bi bi-shield-check me-1"></i> <strong>Admin</strong> (ADM-001)
+                    </button>
+                </div>
+                <div class="text-muted small mt-2" style="font-size: 11px;">
+                    Password default: <code>rahasia123</code>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="text-center mt-3 text-muted small">
+            Butuh bantuan akses login? Hubungi Divisi IT Institut Asia di Gd. A Lt. 2
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Quick Demo Account Auto-Fill
+    function fillAcc(id, pw) {
+        document.getElementById('nomor_identitas').value = id;
+        document.getElementById('password').value = pw;
+    }
+
+    // Toggle Password Visibility
+    document.getElementById('togglePw').addEventListener('click', function () {
+        const input = document.getElementById('password');
+        const icon  = document.getElementById('togglePwIcon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    });
+</script>
+{% endblock %}

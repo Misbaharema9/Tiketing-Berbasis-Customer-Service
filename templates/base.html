@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistem Tiketing Berbasis Customer Service — Institut Asia{% endblock %}</title>
+    
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #2563EB;
+            --primary-hover: #1D4ED8;
+            --primary-light: #EFF6FF;
+            --sidebar-bg: #0F172A;
+            --sidebar-hover: #1E293B;
+            --sidebar-active: #3B82F6;
+            --body-bg: #F4F7FB;
+            --card-border: #E5EBF2;
+            --text-main: #1E293B;
+            --text-muted: #64748B;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--body-bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* Status Dot Indicator */
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Modern Dribbble Cards */
+        .card-modern {
+            background: #FFFFFF;
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+            transition: all 0.25s ease;
+        }
+
+        .card-modern:hover {
+            box-shadow: 0 10px 25px -4px rgba(15, 23, 42, 0.08);
+        }
+
+        /* App Layout Shell */
+        .app-shell {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Modern Sidebar */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            color: #E2E8F0;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s ease;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 1020;
+        }
+
+        .sidebar-brand {
+            padding: 24px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .sidebar-brand .logo-icon {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+        }
+
+        .sidebar-menu {
+            padding: 20px 14px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .menu-header {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748B;
+            padding: 8px 12px;
+            margin-top: 6px;
+        }
+
+        .nav-item-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            color: #94A3B8;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item-link i {
+            font-size: 18px;
+        }
+
+        .nav-item-link:hover {
+            background-color: var(--sidebar-hover);
+            color: #FFFFFF;
+        }
+
+        .nav-item-link.active {
+            background: linear-gradient(135deg, #2563EB, #1D4ED8);
+            color: #FFFFFF;
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.15);
+        }
+
+        /* Main Content Container */
+        .main-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* Top Header Bar */
+        .top-navbar {
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--card-border);
+            padding: 14px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1010;
+        }
+
+        .search-pill {
+            background: #F1F5F9;
+            border-radius: 20px;
+            padding: 7px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #64748B;
+            font-size: 13.5px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            width: 320px;
+        }
+
+        .search-pill input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            font-size: 13.5px;
+            color: var(--text-main);
+        }
+
+        .search-pill:focus-within {
+            background: #FFFFFF;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Content Area */
+        .content-area {
+            padding: 28px;
+            flex: 1;
+        }
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 4px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 991.98px) {
+            .sidebar {
+                position: fixed;
+                left: -260px;
+            }
+            .sidebar.show {
+                left: 0;
+            }
+            .search-pill {
+                width: 200px;
+            }
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+    {% if session.user_id %}
+    <!-- ================= APP SHELL FOR LOGGED IN USERS ================= -->
+    <div class="app-shell">
+        
+        <!-- SIDEBAR KIRI -->
+        <aside class="sidebar" id="sidebarNav">
+            <!-- Brand Logo -->
+            <div class="sidebar-brand">
+                <div class="logo-icon">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-white tracking-wide">Institut Asia</h6>
+                    <small class="text-white-50" style="font-size: 11px;">Sistem Tiketing Berbasis Customer Service</small>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <div class="sidebar-menu">
+                <div class="menu-header">Menu Utama</div>
+
+                <a href="{{ url_for('dashboard') }}" class="nav-item-link {% if request.path == url_for('dashboard') or 'dashboard' in request.path %}active{% endif %}">
+                    <i class="bi bi-grid-fill"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                {% if session.role == 'customer' %}
+                    <!-- Menu Mahasiswa / Pelapor -->
+                    <div class="menu-header">Layanan Mahasiswa</div>
+                    
+                    <a href="{{ url_for('tiket_ajukan') }}" class="nav-item-link {% if request.path == url_for('tiket_ajukan') %}active{% endif %}">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Buat Tiket Baru</span>
+                    </a>
+
+                    <a href="{{ url_for('dashboard_customer') }}" class="nav-item-link {% if request.path == url_for('dashboard_customer') %}active{% endif %}">
+                        <i class="bi bi-ticket-perforated-fill"></i>
+                        <span>Riwayat Tiket Saya</span>
+                    </a>
+                {% endif %}
+
+                {% if session.role == 'karyawan' %}
+                    <!-- Menu Customer Service Kampus -->
+                    <div class="menu-header">Workstation Helpdesk</div>
+
+                    <a href="{{ url_for('karyawan_antrian') }}" class="nav-item-link {% if request.path == url_for('karyawan_antrian') %}active{% endif %}">
+                        <i class="bi bi-inbox-fill"></i>
+                        <span>Antrean Tiket Masuk</span>
+                    </a>
+
+                    <a href="{{ url_for('dashboard_karyawan') }}" class="nav-item-link {% if request.path == url_for('dashboard_karyawan') %}active{% endif %}">
+                        <i class="bi bi-chat-left-dots-fill"></i>
+                        <span>Tiket Ditangani</span>
+                    </a>
+                {% endif %}
+
+                {% if session.role == 'admin' %}
+                    <!-- Menu Administrator Sistem -->
+                    <div class="menu-header">Pusat Kendali Admin</div>
+
+                    <a href="{{ url_for('admin_tiket') }}" class="nav-item-link {% if request.path == url_for('admin_tiket') %}active{% endif %}">
+                        <i class="bi bi-collection-fill"></i>
+                        <span>Semua Tiket Kampus</span>
+                    </a>
+
+                    <a href="{{ url_for('admin_kategori') }}" class="nav-item-link {% if 'kategori' in request.path %}active{% endif %}">
+                        <i class="bi bi-tags-fill"></i>
+                        <span>Master Kategori &amp; Kuota</span>
+                    </a>
+                {% endif %}
+
+                <!-- Card Bantuan Kampus di Sidebar -->
+                <div class="mt-4 p-3 rounded-4" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);">
+                    <div class="d-flex align-items-center gap-2 mb-2 text-info">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span class="small fw-bold">Pusat Informasi</span>
+                    </div>
+                    <p class="mb-0 text-white-50" style="font-size: 11.5px; line-height: 1.5;">
+                        Layanan operasional Senin–Jumat 08.00–16.00 WIB. Ruang Lab &amp; BAAK Institut Asia.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer Sidebar: Profile & Logout -->
+            <div class="sidebar-footer">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold shadow-sm"
+                             style="width: 36px; height: 36px; background: linear-gradient(135deg, #6366F1, #8B5CF6); font-size: 13px; flex-shrink: 0;">
+                            {{ session.nama[:2] | upper }}
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="text-white fw-semibold small text-truncate" title="{{ session.nama }}">{{ session.nama }}</div>
+                            <div class="text-white-50 text-truncate" style="font-size: 11px;">
+                                <code>{{ session.nomor_identitas }}</code>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger border-0 p-2 text-danger" title="Keluar dari Sistem">
+                        <i class="bi bi-box-arrow-right fs-5"></i>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <div class="main-wrapper">
+            <!-- TOP NAVBAR -->
+            <header class="top-navbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-light d-lg-none border shadow-sm" type="button" onclick="document.getElementById('sidebarNav').classList.toggle('show')">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+                    <!-- Search Simulation -->
+                    <div class="search-pill d-none d-md-flex">
+                        <i class="bi bi-search"></i>
+                        <input type="text" placeholder="Cari nomor tiket, topik kendala..." readonly>
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Quick action for students -->
+                    {% if session.role == 'customer' %}
+                    <a href="{{ url_for('tiket_ajukan') }}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-semibold d-flex align-items-center gap-2">
+                        <i class="bi bi-plus-lg"></i>
+                        <span>Buat Tiket Baru</span>
+                    </a>
+                    {% endif %}
+
+                    <!-- Campus Badge -->
+                    <span class="badge rounded-pill bg-light text-secondary border px-3 py-2 fw-medium d-none d-sm-inline-flex align-items-center gap-2">
+                        <i class="bi bi-building text-primary"></i> Kampus Asia Malang
+                    </span>
+
+                    <!-- Role Badge -->
+                    {% if session.role == 'admin' %}
+                        <span class="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 fw-bold">Admin Kampus</span>
+                    {% elif session.role == 'karyawan' %}
+                        <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2 fw-bold">Helpdesk CS</span>
+                    {% else %}
+                        <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-bold">Mahasiswa</span>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- FLASH ALERTS & CONTENT -->
+            <main class="content-area">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                {% for category, message in messages %}
+                                    {% set cat = category if category != 'message' else 'info' %}
+                                    <div class="alert alert-{{ cat }} alert-dismissible fade show card-modern p-3 border-0 shadow-sm d-flex align-items-center gap-3" role="alert">
+                                        <div class="fs-4 text-{{ cat }}">
+                                            {% if cat == 'success' %}<i class="bi bi-check-circle-fill"></i>
+                                            {% elif cat == 'danger' %}<i class="bi bi-exclamation-triangle-fill"></i>
+                                            {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+                                        </div>
+                                        <div class="flex-grow-1 fw-medium text-dark">{{ message }}</div>
+                                        <button type="button" class="btn-close position-relative p-2" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- FOOTER -->
+            <footer class="py-3 px-4 bg-white border-top text-center text-muted small mt-auto">
+                <div class="container-fluid d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+                    <span>&copy; 2026 <strong>Institut Asia Malang</strong> — Sistem Tiketing Berbasis Customer Service</span>
+                    <span class="text-secondary">Proyek RPL &bull; Aldi &amp; Aldo Pandufirangga</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- ================= PUBLIC / GUEST LAYOUT ================= -->
+    <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm py-3">
+        <div class="container px-4">
+            <a class="navbar-brand d-flex align-items-center gap-2 fw-bold text-dark" href="{{ url_for('beranda') }}">
+                <div class="logo-icon rounded-3 p-2 d-flex align-items-center justify-content-center text-white"
+                     style="width: 36px; height: 36px; background: linear-gradient(135deg, #2563EB, #1D4ED8);">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <span>Sistem Tiketing Berbasis Customer Service</span>
+            </a>
+            <div class="ms-auto">
+                <a href="{{ url_for('login') }}" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Masuk Sistem
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="py-4">
+        <div class="container px-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="row justify-content-center mb-3">
+                        <div class="col-md-8">
+                            {% for category, message in messages %}
+                                {% set cat = category if category != 'message' else 'info' %}
+                                <div class="alert alert-{{ cat }} alert-dismissible fade show card-modern p-3 border-0 shadow-sm d-flex align-items-center gap-3" role="alert">
+                                    <div class="fs-4 text-{{ cat }}">
+                                        {% if cat == 'success' %}<i class="bi bi-check-circle-fill"></i>
+                                        {% elif cat == 'danger' %}<i class="bi bi-exclamation-triangle-fill"></i>
+                                        {% else %}<i class="bi bi-info-circle-fill"></i>{% endif %}
+                                    </div>
+                                    <div class="flex-grow-1 fw-medium text-dark">{{ message }}</div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block guest_content %}{{ self.content() }}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="py-4 bg-white border-top text-center text-muted small mt-auto">
+        <div class="container">
+            <p class="mb-1">&copy; 2026 <strong>Institut Asia Malang</strong> — Sistem Tiketing Berbasis Customer Service</p>
+            <p class="text-secondary mb-0">Teknik Informatika &bull; Disusun oleh Aldi (252011005) &amp; Aldo Pandufirangga (252011034)</p>
+        </div>
+    </footer>
+    {% endif %}
+
+    <!-- Bootstrap 5 Bundle JS CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

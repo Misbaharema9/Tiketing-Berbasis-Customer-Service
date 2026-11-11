@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}{{ judul }} — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin_kategori') }}" class="text-decoration-none">Master Kategori</a></li>
+        <li class="breadcrumb-item active">{{ judul }}</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card-modern p-4 p-md-5 bg-white">
+            
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom">
+                <div class="rounded-4 p-3 bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-tag-fill fs-4"></i>
+                </div>
+                <div>
+                    <h4 class="fw-bold mb-1 text-dark">{{ judul }}</h4>
+                    <p class="text-muted small mb-0">Kelola master data kategori pengaduan kampus Institut Asia</p>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ form_action }}" novalidate>
+                <!-- Kode Kategori -->
+                <div class="mb-4">
+                    <label for="kode" class="form-label fw-semibold small text-secondary">
+                        Kode Kategori <span class="text-danger">*</span>
+                    </label>
+                    <input type="text"
+                           id="kode"
+                           name="kode"
+                           class="form-control form-control-lg bg-light border-light-subtle rounded-3 text-uppercase {{ 'is-invalid' if errors.kode else '' }}"
+                           value="{{ data.kode }}"
+                           placeholder="Contoh: KAT-006 / AKAD-01"
+                           maxlength="20"
+                           required
+                           oninput="this.value = this.value.toUpperCase()">
+                    {% if errors.kode %}
+                    <div class="invalid-feedback fw-medium">
+                        <i class="bi bi-exclamation-circle me-1"></i>{{ errors.kode }}
+                    </div>
+                    {% else %}
+                    <div class="form-text small">Kode unik singkatan kategori (maks 20 karakter).</div>
+                    {% endif %}
+                </div>
+
+                <!-- Nama Kategori -->
+                <div class="mb-4">
+                    <label for="nama" class="form-label fw-semibold small text-secondary">
+                        Nama Kategori Layanan Kampus <span class="text-danger">*</span>
+                    </label>
+                    <input type="text"
+                           id="nama"
+                           name="nama"
+                           class="form-control form-control-lg bg-light border-light-subtle rounded-3 {{ 'is-invalid' if errors.nama else '' }}"
+                           value="{{ data.nama }}"
+                           placeholder="Contoh: Layanan Akademik / UKT & Keuangan"
+                           maxlength="100"
+                           required>
+                    {% if errors.nama %}
+                    <div class="invalid-feedback fw-medium">
+                        <i class="bi bi-exclamation-circle me-1"></i>{{ errors.nama }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Kuota Tiket -->
+                <div class="mb-4">
+                    <label for="kuota" class="form-label fw-semibold small text-secondary">
+                        Batas Kuota Pengajuan Tiket <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <input type="number"
+                               id="kuota"
+                               name="kuota"
+                               class="form-control form-control-lg bg-light border-light-subtle rounded-start-3 {{ 'is-invalid' if errors.kuota else '' }}"
+                               value="{{ data.kuota }}"
+                               placeholder="Contoh: 50"
+                               min="1"
+                               required>
+                        <span class="input-group-text bg-light text-muted small rounded-end-3">tiket</span>
+                        {% if errors.kuota %}
+                        <div class="invalid-feedback fw-medium">
+                            <i class="bi bi-exclamation-circle me-1"></i>{{ errors.kuota }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-text small">Maksimum jumlah tiket yang dapat dibuka bersamaan dalam kategori ini (harus &gt; 0).</div>
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="mb-4">
+                    <label for="deskripsi" class="form-label fw-semibold small text-secondary">
+                        Deskripsi / Cakupan Layanan <span class="text-muted fw-normal">(Opsional)</span>
+                    </label>
+                    <textarea id="deskripsi"
+                              name="deskripsi"
+                              class="form-control bg-light border-light-subtle rounded-3"
+                              rows="3"
+                              placeholder="Penjelasan ringkas mengenai jenis masalah yang masuk di kategori ini..."
+                              maxlength="300">{{ data.deskripsi }}</textarea>
+                </div>
+
+                <hr class="my-4 text-muted opacity-25">
+
+                <div class="d-flex justify-content-end align-items-center gap-3">
+                    <a href="{{ url_for('admin_kategori') }}" class="btn btn-light rounded-pill px-4 text-secondary">
+                        Batal
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm">
+                        <i class="bi bi-check-circle-fill me-2"></i> Simpan Kategori
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

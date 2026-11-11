@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+
+{% block title %}Master Kategori — Sistem Tiketing Berbasis Customer Service{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb small">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
+        <li class="breadcrumb-item active">Master Kategori Layanan</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark">
+            <i class="bi bi-tags-fill text-primary me-2"></i>Kategori Layanan &amp; Kuota Tiket Kampus
+        </h4>
+        <p class="text-muted small mb-0">
+            Kelola master kategori pengaduan (Akademik, Keuangan/UKT, IT/SIMAKA, Perpustakaan, Sarana Prasarana)
+        </p>
+    </div>
+    <a href="{{ url_for('admin_kategori_tambah') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-semibold shadow-sm d-inline-flex align-items-center gap-2">
+        <i class="bi bi-plus-circle-fill"></i>
+        <span>Tambah Kategori Baru</span>
+    </a>
+</div>
+
+<!-- ================= TABLE CARD ================= -->
+<div class="card-modern p-4 bg-white">
+    {% if rows %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light rounded-3">
+                <tr class="text-secondary small">
+                    <th class="ps-3 border-0" style="width: 60px;">No</th>
+                    <th class="border-0">Kode</th>
+                    <th class="border-0">Nama Kategori Kampus</th>
+                    <th class="border-0">Deskripsi / Ruang Lingkup</th>
+                    <th class="border-0 text-center" style="width: 90px;">Kuota</th>
+                    <th class="border-0" style="width: 220px;">Pemakaian Kuota</th>
+                    <th class="border-0 text-center" style="width: 140px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                {% set pct = [(row.jumlah_tiket / row.kuota * 100) | int, 100] | min %}
+                <tr>
+                    <td class="ps-3 text-muted small">{{ loop.index }}</td>
+                    <td>
+                        <code class="fw-bold text-primary">{{ row.kode }}</code>
+                    </td>
+                    <td class="fw-semibold text-dark">{{ row.nama }}</td>
+                    <td class="text-muted small">
+                        {{ row.deskripsi if row.deskripsi else '—' }}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge rounded-pill bg-light text-dark border px-3 py-1">{{ row.kuota }}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-column gap-1">
+                            <div class="d-flex justify-content-between small">
+                                <span class="fw-semibold text-dark">{{ row.jumlah_tiket }} <span class="text-muted fw-normal">/ {{ row.kuota }}</span></span>
+                                <span class="text-muted">{{ pct }}%</span>
+                            </div>
+                            <div class="progress" style="height: 6px; border-radius: 4px;">
+                                <div class="progress-bar {% if pct >= 90 %}bg-danger{% elif pct >= 70 %}bg-warning{% else %}bg-primary{% endif %}"
+                                     style="width: {{ pct }}%;"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <a href="{{ url_for('admin_kategori_ubah', kategori_id=row.kategori_id) }}"
+                           class="btn btn-sm btn-outline-primary rounded-circle p-2 me-1" title="Ubah Kategori">
+                            <i class="bi bi-pencil-fill"></i>
+                        </a>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger rounded-circle p-2 btn-hapus"
+                                title="Hapus Kategori"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalHapus"
+                                data-nama="{{ row.nama }}"
+                                data-kode="{{ row.kode }}"
+                                data-tiket="{{ row.jumlah_tiket }}"
+                                data-url="{{ url_for('admin_kategori_hapus', kategori_id=row.kategori_id) }}">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-tags display-5 text-secondary opacity-50 d-block mb-2"></i>
+        <h6 class="fw-bold text-dark mb-1">Belum Ada Kategori Layanan</h6>
+        <p class="small mb-3">Tambahkan master kategori layanan kampus Institut Asia.</p>
+        <a href="{{ url_for('admin_kategori_tambah') }}" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-plus-lg me-1"></i> Tambah Kategori
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div class="modal fade" id="modalHapus" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-modern border-0 shadow-lg p-3">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Konfirmasi Hapus Kategori
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-3">
+                <p class="mb-2 text-dark">
+                    Anda yakin ingin menghapus kategori <strong id="modalNama" class="text-danger"></strong> <code id="modalKode"></code>?
+                </p>
+                <div id="perigatanTiket" class="alert alert-warning py-2 small mb-2 d-none">
+                    <i class="bi bi-exclamation-circle-fill me-1"></i>
+                    Kategori ini masih memiliki <strong id="modalJmlTiket"></strong> tiket terkait dan <strong>tidak dapat dihapus</strong>.
+                </div>
+                <small id="konfirmasiTeks" class="text-muted d-block">Tindakan ini tidak dapat dibatalkan.</small>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4 text-secondary" data-bs-dismiss="modal">Batal</button>
+                <form id="formHapus" method="POST" action="">
+                    <button type="submit" id="btnHapusOk" class="btn btn-danger rounded-pill px-4 fw-semibold">
+                        Ya, Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    document.querySelectorAll('.btn-hapus').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const nama   = this.dataset.nama;
+            const kode   = this.dataset.kode;
+            const tiket  = parseInt(this.dataset.tiket, 10);
+            const url    = this.dataset.url;
+
+            document.getElementById('modalNama').textContent   = nama;
+            document.getElementById('modalKode').textContent   = '(' + kode + ')';
+            document.getElementById('formHapus').action        = url;
+
+            const perigatanEl = document.getElementById('perigatanTiket');
+            const konfEl      = document.getElementById('konfirmasiTeks');
+            const btnOk       = document.getElementById('btnHapusOk');
+
+            if (tiket > 0) {
+                document.getElementById('modalJmlTiket').textContent = tiket;
+                perigatanEl.classList.remove('d-none');
+                konfEl.classList.add('d-none');
+                btnOk.disabled = true;
+            } else {
+                perigatanEl.classList.add('d-none');
+                konfEl.classList.remove('d-none');
+                btnOk.disabled = false;
+            }
+        });
+    });
+</script>
+{% endblock %}
